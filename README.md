@@ -27,10 +27,10 @@ example of setup in configurations.yaml
     - "23161357" # Lirik
     - "71336" # Robbaz
 
-`client_id`: client id acquired in Twitch developer app
-`client_secret`: client secret acquired in Twitch developer app
-`own_channel_id`: channel id of your twitch channel. Used to check if channels are followed and subscribed to. 
-`channel_ids`: list of channel ids to create entities for
+`client_id`: client id acquired in Twitch developer app  
+`client_secret`: client secret acquired in Twitch developer app  
+`own_channel_id`: channel id of your twitch channel. Used to check if channels are followed and subscribed to.  
+`channel_ids`: list of channel ids to create entities for  
 
 Channel ids can be resolved here by Twitch username: https://www.streamweasels.com/support/convert-twitch-username-to-user-id/
 
