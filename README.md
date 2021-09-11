@@ -4,7 +4,7 @@
 Custom Component to integrate with Twitch helix api
 
 It looks like the original Twitch sensor integration uses the Twitch V5 API which is deprecated.
-New Twitch apps will nok work with this deprecated API.
+New Twitch apps doesn't seem to work with this deprecated API.
 
 This component does mostly the same as the original integration, but the underlying implementation is using the Twitch Helix API.
 
