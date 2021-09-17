@@ -114,14 +114,11 @@ class TwitchSensor(SensorEntity):
         """Update device state."""
         
         # Broadcast user
-        try:
-            broadcast_users = self._client.get_users(user_ids=[self._channel_id])            
-            broadcast_user = broadcast_users["data"][0]
-            
-            self._preview = broadcast_user["profile_image_url"]
-            self._name = broadcast_user["display_name"]
-        except:
-            return
+        broadcast_users = self._client.get_users(user_ids=[self._channel_id])            
+        broadcast_user = broadcast_users["data"][0]
+        
+        self._preview = broadcast_user["profile_image_url"]
+        self._name = broadcast_user["display_name"]
 
         # Subscription
         try:
@@ -153,7 +150,7 @@ class TwitchSensor(SensorEntity):
                 ATTR_FOLLOW_SINCE: None
             } 
 
-        # stream
+        # Stream
         try:
             streams = self._client.get_streams(user_id=[self._channel_id])
             stream = streams["data"][0]
