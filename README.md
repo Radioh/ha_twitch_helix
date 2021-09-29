@@ -20,7 +20,7 @@ This component requires a Twitch developer app which can be setup here: https://
 
 ### Using HACS
 
-You can install this custom component using the Home Assistant Community Store (HACS). Search for "Twitch Helix".
+You can install this custom component using the Home Assistant Community Store (HACS). Click the top right corner in HACS and add this repository to the "Custom repositories" - https://github.com/Radioh/ha_twitch_helix/. After adding the repository you You should be able to search for "Twitch Helix" and install it.
 If you don't have HACS installed and want to know more you can read about it at <https://hacs.xyz/>
 
 ### Installing manually
