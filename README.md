@@ -36,7 +36,18 @@ Channel ids can be found by visiting this website and enter the display name of 
 
 example of setup in configurations.yaml
 
-![](configuration.JPG)
+```
+sensor:
+  - platform: twitch_helix
+    client_id: !secret twitch_client_id
+    client_secret: !secret twitch_client_secret
+    own_channel_id: "23936415"
+    channel_ids:
+      - "23161357" # Lirik
+      - "71336" # Robbaz
+      - "22552479" # Waffle
+      - "23528098" # AvoidingThePuddle
+```
 
 `client_id`: client id acquired in Twitch developer app  
 `client_secret`: client secret acquired in Twitch developer app  
