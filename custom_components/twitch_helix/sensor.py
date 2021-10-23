@@ -14,6 +14,8 @@ ATTR_SUBSCRIPTION = "subscribed"
 ATTR_SUBSCRIPTION_GIFTED = "subscription_is_gifted"
 ATTR_FOLLOW = "following"
 ATTR_FOLLOW_SINCE = "following_since"
+ATTR_FOLLOWERS_COUNT = "followers"
+ATTR_VIEWS = "viewers"
 
 CONF_CLIENT_ID = "client_id"
 CONF_CLIENT_SECRET = "client_secret"
@@ -72,6 +74,7 @@ class TwitchSensor(SensorEntity):
         self._subscription = None
         self._follow = None
         self._name = None
+        self._views = None
 
     @property
     def name(self):
@@ -97,7 +100,10 @@ class TwitchSensor(SensorEntity):
         attr.update(self._follow)
 
         if self._state == STATE_STREAMING:
-            attr.update({ATTR_GAME: self._game, ATTR_TITLE: self._title})
+            attr.update({
+                ATTR_GAME: self._game,
+                ATTR_TITLE: self._title,
+                ATTR_VIEWS: self._views})
         return attr
 
     @property
@@ -115,10 +121,22 @@ class TwitchSensor(SensorEntity):
         
         # Broadcast user
         broadcast_users = self._client.get_users(user_ids=[self._channel_id])            
-        broadcast_user = broadcast_users["data"][0]
+        broadcast_user = broadcast_users["data"][0]        
         
         self._preview = broadcast_user["profile_image_url"]
         self._name = broadcast_user["display_name"]
+
+        # Stream
+        try:
+            streams = self._client.get_streams(user_id=[self._channel_id])
+            stream = streams["data"][0]
+
+            self._game = stream["game_name"]
+            self._title = stream["title"]
+            self._views = stream["viewer_count"]
+            self._state = STATE_STREAMING
+        except:
+            self._state = STATE_OFFLINE
 
         # Subscription
         try:
@@ -135,11 +153,11 @@ class TwitchSensor(SensorEntity):
                 ATTR_SUBSCRIPTION_GIFTED: False
             }
 
-        # Follows
+        # Follow - User to streamer 
         try:
             follows = self._client.get_users_follows(from_id=self._user_id, to_id=self._channel_id)
             follow = follows["data"][0]
-            
+
             self._follow = {
                 ATTR_FOLLOW: True,
                 ATTR_FOLLOW_SINCE: follow["followed_at"]
@@ -148,15 +166,12 @@ class TwitchSensor(SensorEntity):
             self._follow = {
                 ATTR_FOLLOW: False,
                 ATTR_FOLLOW_SINCE: None
-            } 
+            }
 
-        # Stream
+        # Follow - Total follows
         try:
-            streams = self._client.get_streams(user_id=[self._channel_id])
-            stream = streams["data"][0]
-
-            self._game = stream["game_name"]
-            self._title = stream["title"]
-            self._state = STATE_STREAMING
+            total_follows = self._client.get_users_follows(to_id=self._channel_id,first=1)        
+            self._follow[ATTR_FOLLOWERS_COUNT] = total_follows["total"]
         except:
-            self._state = STATE_OFFLINE
+            self._follow[ATTR_FOLLOWERS_COUNT] = None
+
