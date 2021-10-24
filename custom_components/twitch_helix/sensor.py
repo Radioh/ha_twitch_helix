@@ -16,6 +16,7 @@ ATTR_FOLLOW = "following"
 ATTR_FOLLOW_SINCE = "following_since"
 ATTR_FOLLOWERS_COUNT = "followers"
 ATTR_VIEWS = "viewers"
+ATTR_TOTAL_VIEWS = "channel_views"
 
 CONF_CLIENT_ID = "client_id"
 CONF_CLIENT_SECRET = "client_secret"
@@ -74,7 +75,8 @@ class TwitchSensor(SensorEntity):
         self._subscription = None
         self._follow = None
         self._name = None
-        self._views = None
+        self._viewers = None
+        self._total_views = None
 
     @property
     def name(self):
@@ -98,12 +100,17 @@ class TwitchSensor(SensorEntity):
         
         attr.update(self._subscription)
         attr.update(self._follow)
+        attr.update({
+            ATTR_TOTAL_VIEWS: self._total_views
+        })
 
         if self._state == STATE_STREAMING:
             attr.update({
                 ATTR_GAME: self._game,
                 ATTR_TITLE: self._title,
-                ATTR_VIEWS: self._views})
+                ATTR_VIEWS: self._viewers
+            })
+
         return attr
 
     @property
@@ -125,6 +132,7 @@ class TwitchSensor(SensorEntity):
         
         self._preview = broadcast_user["profile_image_url"]
         self._name = broadcast_user["display_name"]
+        self._total_views = broadcast_user["view_count"]
 
         # Stream
         try:
@@ -133,7 +141,7 @@ class TwitchSensor(SensorEntity):
 
             self._game = stream["game_name"]
             self._title = stream["title"]
-            self._views = stream["viewer_count"]
+            self._viewers = stream["viewer_count"]
             self._state = STATE_STREAMING
         except:
             self._state = STATE_OFFLINE
