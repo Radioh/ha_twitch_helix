@@ -17,6 +17,7 @@ ATTR_FOLLOW_SINCE = "following_since"
 ATTR_FOLLOWERS_COUNT = "followers"
 ATTR_VIEWS = "viewers"
 ATTR_TOTAL_VIEWS = "channel_views"
+ATTR_THUMBNAIL = "thumbnail_url"
 
 CONF_CLIENT_ID = "client_id"
 CONF_CLIENT_SECRET = "client_secret"
@@ -77,6 +78,7 @@ class TwitchSensor(SensorEntity):
         self._name = None
         self._viewers = None
         self._total_views = None
+        self._thumbnail_url = None
 
     @property
     def name(self):
@@ -108,7 +110,8 @@ class TwitchSensor(SensorEntity):
             attr.update({
                 ATTR_GAME: self._game,
                 ATTR_TITLE: self._title,
-                ATTR_VIEWS: self._viewers
+                ATTR_VIEWS: self._viewers,
+                ATTR_THUMBNAIL: self._thumbnail_url
             })
 
         return attr
@@ -142,6 +145,7 @@ class TwitchSensor(SensorEntity):
             self._game = stream["game_name"]
             self._title = stream["title"]
             self._viewers = stream["viewer_count"]
+            self._thumbnail_url = stream["thumbnail_url"].replace("{width}", "300").replace("{height}", "300")
             self._state = STATE_STREAMING
         except:
             self._state = STATE_OFFLINE
