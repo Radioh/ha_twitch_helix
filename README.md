@@ -53,7 +53,7 @@ sensor:
 `client_id`: client id acquired in Twitch developer app  
 `client_secret`: client secret acquired in Twitch developer app  
 `own_channel_id`: channel id of your twitch channel. Used to check if channels are followed and subscribed to.  
-`thumbnail_dimensions`: optional parameter. Format is {width}x{height} for thumbnail_url dimensions. Default value is "{width}x{height}" where you need to replace values yourself in the url.
+`thumbnail_dimensions`: optional parameter. Format is {width}x{height} for thumbnail_url dimensions. Default value is "{width}x{height}" where you need to replace values yourself in the url.\
 `channel_ids`: list of channel ids to create entities for
 
 Channel ids can be resolved here by Twitch username: https://www.streamweasels.com/support/convert-twitch-username-to-user-id/
