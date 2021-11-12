@@ -23,6 +23,7 @@ CONF_CLIENT_ID = "client_id"
 CONF_CLIENT_SECRET = "client_secret"
 CONF_OWN_CHANNEL = "own_channel_id"
 CONF_CHANNELS = "channel_ids"
+CONF_THUMBNAIL_DIMENSIONS = "thumbnail_dimensions"
 
 ICON = "mdi:twitch"
 
@@ -37,6 +38,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Required(CONF_CLIENT_SECRET): cv.string,
         vol.Required(CONF_OWN_CHANNEL): cv.string,
         vol.Required(CONF_CHANNELS): vol.All(cv.ensure_list, [cv.string]),
+        vol.Optional(CONF_THUMBNAIL_DIMENSIONS) : cv.string
     }
 )
 
@@ -45,6 +47,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     client_secret = config[CONF_CLIENT_SECRET]
     own_channel_id = config[CONF_OWN_CHANNEL]
     channel_ids = config[CONF_CHANNELS]
+    thumbnail_dimensions = config.get(CONF_THUMBNAIL_DIMENSIONS, None)
     user_id = None
     
     scopes = [
@@ -62,10 +65,10 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         _LOGGER.error("Error during initial twitch api check. Check config variables")
         return
 
-    add_entities([TwitchSensor(user_id, channel_id, client) for channel_id in channel_ids], True)
+    add_entities([TwitchSensor(user_id, channel_id, client, thumbnail_dimensions) for channel_id in channel_ids], True)
 
 class TwitchSensor(SensorEntity):
-    def __init__(self, user_id, channel_id, client):
+    def __init__(self, user_id, channel_id, client, thumbnail_dimensions):
         self._client = client
         self._user_id = user_id
         self._channel_id = channel_id        
@@ -79,6 +82,7 @@ class TwitchSensor(SensorEntity):
         self._viewers = None
         self._total_views = None
         self._thumbnail_url = None
+        self._thumbnail_dimensions = thumbnail_dimensions
 
     @property
     def name(self):
@@ -145,8 +149,11 @@ class TwitchSensor(SensorEntity):
             self._game = stream["game_name"]
             self._title = stream["title"]
             self._viewers = stream["viewer_count"]
-            self._thumbnail_url = stream["thumbnail_url"].replace("{width}", "300").replace("{height}", "300")
             self._state = STATE_STREAMING
+            self._thumbnail_url = stream["thumbnail_url"]
+
+            if (self._thumbnail_dimensions is not None):
+                self._thumbnail_url = self._thumbnail_url.replace("{width}x{height}", self._thumbnail_dimensions)
         except:
             self._state = STATE_OFFLINE
 
