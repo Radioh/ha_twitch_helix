@@ -48,13 +48,19 @@ sensor:
       - "71336" # Robbaz
       - "22552479" # Waffle
       - "23528098" # AvoidingThePuddle
+    api_opt_outs:
+      # - subscription_user
+      # - follow_user
+      # - follow_total
+      # - stream
 ```
 
-`client_id`: client id acquired in Twitch developer app  
-`client_secret`: client secret acquired in Twitch developer app  
-`own_channel_id`: channel id of your twitch channel. Used to check if channels are followed and subscribed to.  
+`client_id`: client id acquired in Twitch developer app.\
+`client_secret`: client secret acquired in Twitch developer app.\
+`own_channel_id`: channel id of your twitch channel. Used to check if channels are followed and subscribed to.\
 `thumbnail_dimensions`: optional parameter. Format is {width}x{height} for thumbnail_url dimensions. Default value is "{width}x{height}" where you need to replace values yourself in the url.\
-`channel_ids`: list of channel ids to create entities for
+`channel_ids`: list of channel ids to create entities for.\
+`api_opt_outs`: optional parameter. List of apis calls, which can be opted out of. Consider using this if you have a lot of streamers and is hitting the Twitch API rate limit.\
 
 Channel ids can be resolved here by Twitch username: https://www.streamweasels.com/support/convert-twitch-username-to-user-id/
 

@@ -24,11 +24,17 @@ CONF_CLIENT_SECRET = "client_secret"
 CONF_OWN_CHANNEL = "own_channel_id"
 CONF_CHANNELS = "channel_ids"
 CONF_THUMBNAIL_DIMENSIONS = "thumbnail_dimensions"
+CONF_API_OPT_OUTS = "api_opt_outs"
 
 ICON = "mdi:twitch"
 
 STATE_OFFLINE = "offline"
 STATE_STREAMING = "streaming"
+
+OPT_OUT_SUBSCRIPTION_USER = "subscription_user"
+OPT_OUT_FOLLOW_USER = "follow_user"
+OPT_OUT_FOLLOW_TOTAL = "follow_total"
+OPT_OUT_STREAM = "stream"
 
 SCAN_INTERVAL = timedelta(seconds=120)
 
@@ -38,7 +44,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Required(CONF_CLIENT_SECRET): cv.string,
         vol.Required(CONF_OWN_CHANNEL): cv.string,
         vol.Required(CONF_CHANNELS): vol.All(cv.ensure_list, [cv.string]),
-        vol.Optional(CONF_THUMBNAIL_DIMENSIONS) : cv.string
+        vol.Optional(CONF_THUMBNAIL_DIMENSIONS) : cv.string,
+        vol.Optional(CONF_API_OPT_OUTS) : vol.All(cv.ensure_list, [cv.string])
     }
 )
 
@@ -48,7 +55,8 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     own_channel_id = config[CONF_OWN_CHANNEL]
     channel_ids = config[CONF_CHANNELS]
     thumbnail_dimensions = config.get(CONF_THUMBNAIL_DIMENSIONS, None)
-    user_id = None
+    api_opt_outs = config.get(CONF_API_OPT_OUTS, [])
+    user_id = None    
     
     scopes = [
         AuthScope.USER_EDIT,
@@ -65,10 +73,11 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         _LOGGER.error("Error during initial twitch api check. Check config variables")
         return
 
-    add_entities([TwitchSensor(user_id, channel_id, client, thumbnail_dimensions) for channel_id in channel_ids], True)
+    twitch_sensors = [TwitchSensor(user_id, channel_id, client, thumbnail_dimensions, api_opt_outs) for channel_id in channel_ids]
+    add_entities(twitch_sensors, True)
 
 class TwitchSensor(SensorEntity):
-    def __init__(self, user_id, channel_id, client, thumbnail_dimensions):
+    def __init__(self, user_id, channel_id, client, thumbnail_dimensions, api_opt_outs):
         self._client = client
         self._user_id = user_id
         self._channel_id = channel_id        
@@ -83,6 +92,7 @@ class TwitchSensor(SensorEntity):
         self._total_views = None
         self._thumbnail_url = None
         self._thumbnail_dimensions = thumbnail_dimensions
+        self._api_opt_outs = api_opt_outs
 
     @property
     def name(self):
@@ -104,12 +114,14 @@ class TwitchSensor(SensorEntity):
         """Return the state attributes."""
         attr = dict()
         
-        attr.update(self._subscription)
-        attr.update(self._follow)
-        attr.update({
-            ATTR_TOTAL_VIEWS: self._total_views
-        })
+        if (self._subscription):
+            attr.update(self._subscription)
 
+        if (self._follow):                
+            attr.update(self._follow)
+
+        attr.update({ATTR_TOTAL_VIEWS: self._total_views})
+        
         if self._state == STATE_STREAMING:
             attr.update({
                 ATTR_GAME: self._game,
@@ -142,55 +154,59 @@ class TwitchSensor(SensorEntity):
         self._total_views = broadcast_user["view_count"]
 
         # Stream
-        try:
-            streams = self._client.get_streams(user_id=[self._channel_id])
-            stream = streams["data"][0]
+        if (OPT_OUT_STREAM not in self._api_opt_outs):
+            try:
+                streams = self._client.get_streams(user_id=[self._channel_id])
+                stream = streams["data"][0]
 
-            self._game = stream["game_name"]
-            self._title = stream["title"]
-            self._viewers = stream["viewer_count"]
-            self._state = STATE_STREAMING
-            self._thumbnail_url = stream["thumbnail_url"]
+                self._game = stream["game_name"]
+                self._title = stream["title"]
+                self._viewers = stream["viewer_count"]
+                self._state = STATE_STREAMING
+                self._thumbnail_url = stream["thumbnail_url"]
 
-            if (self._thumbnail_dimensions is not None):
-                self._thumbnail_url = self._thumbnail_url.replace("{width}x{height}", self._thumbnail_dimensions)
-        except:
-            self._state = STATE_OFFLINE
+                if (self._thumbnail_dimensions is not None):
+                    self._thumbnail_url = self._thumbnail_url.replace("{width}x{height}", self._thumbnail_dimensions)
+            except:
+                self._state = STATE_OFFLINE
 
         # Subscription
-        try:
-            subscriptions = self._client.check_user_subscription(broadcaster_id=self._channel_id, user_id=self._user_id)
-            subscription = subscriptions["data"][0]
-            
-            self._subscription = {
-                ATTR_SUBSCRIPTION: True,
-                ATTR_SUBSCRIPTION_GIFTED: subscription["is_gift"]
-            }
-        except:
-            self._subscription = {
-                ATTR_SUBSCRIPTION: False, 
-                ATTR_SUBSCRIPTION_GIFTED: False
-            }
+        if (OPT_OUT_SUBSCRIPTION_USER not in self._api_opt_outs):
+            try:
+                subscriptions = self._client.check_user_subscription(broadcaster_id=self._channel_id, user_id=self._user_id)
+                subscription = subscriptions["data"][0]
+                
+                self._subscription = {
+                    ATTR_SUBSCRIPTION: True,
+                    ATTR_SUBSCRIPTION_GIFTED: subscription["is_gift"]
+                }
+            except:
+                self._subscription = {
+                    ATTR_SUBSCRIPTION: False, 
+                    ATTR_SUBSCRIPTION_GIFTED: False
+                }
 
-        # Follow - User to streamer 
-        try:
-            follows = self._client.get_users_follows(from_id=self._user_id, to_id=self._channel_id)
-            follow = follows["data"][0]
+        # Follow - User to streamer    
+        if (OPT_OUT_FOLLOW_USER not in self._api_opt_outs):     
+            try:
+                follows = self._client.get_users_follows(from_id=self._user_id, to_id=self._channel_id)
+                follow = follows["data"][0]
 
-            self._follow = {
-                ATTR_FOLLOW: True,
-                ATTR_FOLLOW_SINCE: follow["followed_at"]
-            }
-        except:
-            self._follow = {
-                ATTR_FOLLOW: False,
-                ATTR_FOLLOW_SINCE: None
-            }
+                self._follow = {
+                    ATTR_FOLLOW: True,
+                    ATTR_FOLLOW_SINCE: follow["followed_at"]
+                }
+            except:
+                self._follow = {
+                    ATTR_FOLLOW: False,
+                    ATTR_FOLLOW_SINCE: None
+                }
 
         # Follow - Total follows
-        try:
-            total_follows = self._client.get_users_follows(to_id=self._channel_id,first=1)        
-            self._follow[ATTR_FOLLOWERS_COUNT] = total_follows["total"]
-        except:
-            self._follow[ATTR_FOLLOWERS_COUNT] = None
+        if (OPT_OUT_FOLLOW_TOTAL not in self._api_opt_outs):
+            try:
+                total_follows = self._client.get_users_follows(to_id=self._channel_id,first=1)        
+                self._follow[ATTR_FOLLOWERS_COUNT] = total_follows["total"]
+            except:
+                self._follow[ATTR_FOLLOWERS_COUNT] = None
 
