@@ -21,8 +21,8 @@ ATTR_THUMBNAIL = "thumbnail_url"
 
 CONF_CLIENT_ID = "client_id"
 CONF_CLIENT_SECRET = "client_secret"
-CONF_OWN_CHANNEL = "own_channel_id"
-CONF_CHANNELS = "channel_ids"
+CONF_OWN_CHANNEL = "own_channel"
+CONF_CHANNELS = "channels"
 CONF_THUMBNAIL_DIMENSIONS = "thumbnail_dimensions"
 CONF_API_OPT_OUTS = "api_opt_outs"
 
@@ -52,8 +52,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 def setup_platform(hass, config, add_entities, discovery_info=None):
     client_id = config[CONF_CLIENT_ID]
     client_secret = config[CONF_CLIENT_SECRET]
-    own_channel_id = config[CONF_OWN_CHANNEL]
-    channel_ids = config[CONF_CHANNELS]
+    own_channel = config[CONF_OWN_CHANNEL]
+    channels = config[CONF_CHANNELS]
     thumbnail_dimensions = config.get(CONF_THUMBNAIL_DIMENSIONS, None)
     api_opt_outs = config.get(CONF_API_OPT_OUTS, [])
     user_id = None    
@@ -67,20 +67,21 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     client = Twitch(client_id, client_secret, target_app_auth_scope=scopes)
 
     try:
-        users = client.get_users(user_ids=[own_channel_id])
+        users = client.get_users(logins=[own_channel])
         user_id = users["data"][0]["id"]
     except:
         _LOGGER.error("Error during initial twitch api check. Check config variables")
         return
 
-    twitch_sensors = [TwitchSensor(user_id, channel_id, client, thumbnail_dimensions, api_opt_outs) for channel_id in channel_ids]
+    twitch_sensors = [TwitchSensor(user_id, channel, client, thumbnail_dimensions, api_opt_outs) for channel in channels]
     add_entities(twitch_sensors, True)
 
 class TwitchSensor(SensorEntity):
-    def __init__(self, user_id, channel_id, client, thumbnail_dimensions, api_opt_outs):
+    def __init__(self, user_id, channel, client, thumbnail_dimensions, api_opt_outs):
         self._client = client
         self._user_id = user_id
-        self._channel_id = channel_id        
+        self._channel = channel
+        self._channel_id = None
         self._state = None
         self._preview = None
         self._game = None
@@ -135,7 +136,7 @@ class TwitchSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return unique ID for this sensor."""
-        return self._channel_id
+        return self._channel
 
     @property
     def icon(self):
@@ -146,9 +147,10 @@ class TwitchSensor(SensorEntity):
         """Update device state."""
         
         # Broadcast user
-        broadcast_users = self._client.get_users(user_ids=[self._channel_id])            
-        broadcast_user = broadcast_users["data"][0]        
+        broadcast_users = self._client.get_users(logins=[self._channel])            
+        broadcast_user = broadcast_users["data"][0]
         
+        self._channel_id = broadcast_user["id"]
         self._preview = broadcast_user["profile_image_url"]
         self._name = broadcast_user["display_name"]
         self._total_views = broadcast_user["view_count"]
