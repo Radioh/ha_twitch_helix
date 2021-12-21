@@ -10,7 +10,7 @@ Custom Component to integrate with Twitch helix api
 It looks like the original Twitch sensor integration uses the Twitch V5 API which is deprecated.
 New Twitch apps doesn't seem to work with this deprecated API.
 
-This component does mostly the same as the original integration found here (https://www.home-assistant.io/integrations/twitch/), but the underlying implementation is using the Twitch Helix API.
+This component does mostly the same as the original integration found here (https://www.home-assistant.io/integrations/twitch/), but with some extra features and the underlying implementation is using the Twitch Helix API.
 
 ## Prerequisites
 
@@ -31,9 +31,6 @@ Download the latest release files and copy the "twitch_helix" folder into your "
 
 This component requires setup in the configuration.yaml file.
 
-Configuration requires channel ids.
-Channel ids can be found by visiting this website and enter the display name of the Twitch channel: https://www.streamweasels.com/support/convert-twitch-username-to-user-id/
-
 example of setup in configurations.yaml
 
 ```
@@ -41,13 +38,13 @@ sensor:
   - platform: twitch_helix
     client_id: !secret twitch_client_id
     client_secret: !secret twitch_client_secret
-    own_channel_id: "23936415"
+    own_channel: "my_channel"
     thumbnail_dimensions: 320x180
-    channel_ids:
-      - "23161357" # Lirik
-      - "71336" # Robbaz
-      - "22552479" # Waffle
-      - "23528098" # AvoidingThePuddle
+    channels:
+      - "LIRIK"
+      - "Robbaz"
+      - "Giantwaffle"
+      - "AvoidingThePuddle"
     api_opt_outs:
       # - subscription_user
       # - follow_user
@@ -57,12 +54,10 @@ sensor:
 
 `client_id`: client id acquired in Twitch developer app.\
 `client_secret`: client secret acquired in Twitch developer app.\
-`own_channel_id`: channel id of your twitch channel. Used to check if channels are followed and subscribed to.\
+`own_channel`: channel username of your twitch channel. Used to check if channels are followed and subscribed to.\
 `thumbnail_dimensions`: optional parameter. Format is {width}x{height} for thumbnail_url dimensions. Default value is "{width}x{height}" where you need to replace values yourself in the url.\
-`channel_ids`: list of channel ids to create entities for.\
+`channels`: list of channel usernames to create entities for.\
 `api_opt_outs`: optional parameter. List of apis calls, which can be opted out of. Consider using this if you have a lot of streamers and is hitting the Twitch API rate limit.\
-
-Channel ids can be resolved here by Twitch username: https://www.streamweasels.com/support/convert-twitch-username-to-user-id/
 
 ## Examples
 
