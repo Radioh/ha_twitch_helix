@@ -38,8 +38,9 @@ sensor:
   - platform: twitch_helix
     client_id: !secret twitch_client_id
     client_secret: !secret twitch_client_secret
-    own_channel: "my_channel"
+    own_channel: my_channel
     thumbnail_dimensions: 320x180
+    entity_prefix: Twitch_
     channels:
       - "LIRIK"
       - "Robbaz"
@@ -56,6 +57,7 @@ sensor:
 `client_secret`: client secret acquired in Twitch developer app.\
 `own_channel`: channel username of your twitch channel. Used to check if channels are followed and subscribed to.\
 `thumbnail_dimensions`: optional parameter. Format is {width}x{height} for thumbnail_url dimensions. Default value is "{width}x{height}" where you need to replace values yourself in the url.\
+`entity_prefix`: optional parameter. Prefix to the entity id.\
 `channels`: list of channel usernames to create entities for.\
 `api_opt_outs`: optional parameter. List of apis calls, which can be opted out of. Consider using this if you have a lot of streamers and is hitting the Twitch API rate limit.\
 
