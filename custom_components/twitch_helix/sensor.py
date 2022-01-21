@@ -3,7 +3,7 @@ import voluptuous as vol
 from twitchAPI.twitch import Twitch, AuthScope
 from datetime import timedelta
 
-from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
+from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity, ENTITY_ID_FORMAT
 import homeassistant.helpers.config_validation as cv
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ CONF_OWN_CHANNEL = "own_channel"
 CONF_CHANNELS = "channels"
 CONF_THUMBNAIL_DIMENSIONS = "thumbnail_dimensions"
 CONF_API_OPT_OUTS = "api_opt_outs"
+CONF_ENTITY_PREFIX = "entity_prefix"
 
 ICON = "mdi:twitch"
 
@@ -45,7 +46,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Required(CONF_OWN_CHANNEL): cv.string,
         vol.Required(CONF_CHANNELS): vol.All(cv.ensure_list, [cv.string]),
         vol.Optional(CONF_THUMBNAIL_DIMENSIONS) : cv.string,
-        vol.Optional(CONF_API_OPT_OUTS) : vol.All(cv.ensure_list, [cv.string])
+        vol.Optional(CONF_API_OPT_OUTS) : vol.All(cv.ensure_list, [cv.string]),
+        vol.Optional(CONF_ENTITY_PREFIX) : cv.string
     }
 )
 
@@ -56,7 +58,9 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     channels = config[CONF_CHANNELS]
     thumbnail_dimensions = config.get(CONF_THUMBNAIL_DIMENSIONS, None)
     api_opt_outs = config.get(CONF_API_OPT_OUTS, [])
-    user_id = None    
+    entity_prefix = config.get(CONF_ENTITY_PREFIX, "")
+
+    user_id = None
     
     scopes = [
         AuthScope.USER_EDIT,
@@ -73,11 +77,12 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         _LOGGER.error("Error during initial twitch api check. Check config variables")
         return
 
-    twitch_sensors = [TwitchSensor(user_id, channel, client, thumbnail_dimensions, api_opt_outs) for channel in channels]
+    twitch_sensors = [TwitchSensor(user_id, channel, client, thumbnail_dimensions, api_opt_outs, entity_prefix) for channel in channels]
     add_entities(twitch_sensors, True)
 
 class TwitchSensor(SensorEntity):
-    def __init__(self, user_id, channel, client, thumbnail_dimensions, api_opt_outs):
+    def __init__(self, user_id, channel, client, thumbnail_dimensions, api_opt_outs, entity_prefix):
+        self.entity_id = ENTITY_ID_FORMAT.format(entity_prefix + channel)
         self._client = client
         self._user_id = user_id
         self._channel = channel
@@ -118,7 +123,7 @@ class TwitchSensor(SensorEntity):
         if (self._subscription):
             attr.update(self._subscription)
 
-        if (self._follow):                
+        if (self._follow):
             attr.update(self._follow)
 
         attr.update({ATTR_TOTAL_VIEWS: self._total_views})
@@ -147,7 +152,7 @@ class TwitchSensor(SensorEntity):
         """Update device state."""
         
         # Broadcast user
-        broadcast_users = self._client.get_users(logins=[self._channel])            
+        broadcast_users = self._client.get_users(logins=[self._channel])
         broadcast_user = broadcast_users["data"][0]
         
         self._channel_id = broadcast_user["id"]
@@ -189,7 +194,7 @@ class TwitchSensor(SensorEntity):
                 }
 
         # Follow - User to streamer    
-        if (OPT_OUT_FOLLOW_USER not in self._api_opt_outs):     
+        if (OPT_OUT_FOLLOW_USER not in self._api_opt_outs):
             try:
                 follows = self._client.get_users_follows(from_id=self._user_id, to_id=self._channel_id)
                 follow = follows["data"][0]
@@ -207,7 +212,7 @@ class TwitchSensor(SensorEntity):
         # Follow - Total follows
         if (OPT_OUT_FOLLOW_TOTAL not in self._api_opt_outs):
             try:
-                total_follows = self._client.get_users_follows(to_id=self._channel_id,first=1)        
+                total_follows = self._client.get_users_follows(to_id=self._channel_id,first=1)
                 self._follow[ATTR_FOLLOWERS_COUNT] = total_follows["total"]
             except:
                 self._follow[ATTR_FOLLOWERS_COUNT] = None
