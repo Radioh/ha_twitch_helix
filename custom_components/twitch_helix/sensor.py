@@ -213,7 +213,14 @@ class TwitchSensor(SensorEntity):
         if (OPT_OUT_FOLLOW_TOTAL not in self._api_opt_outs):
             try:
                 total_follows = self._client.get_users_follows(to_id=self._channel_id,first=1)
-                self._follow[ATTR_FOLLOWERS_COUNT] = total_follows["total"]
+                
+                if (self._follow):
+                    self._follow[ATTR_FOLLOWERS_COUNT] = total_follows["total"]
+                else:    
+                    self._follow = {
+                        ATTR_FOLLOWERS_COUNT : total_follows["total"]
+                    }
             except:
-                self._follow[ATTR_FOLLOWERS_COUNT] = None
+                if (self._follow is not None):
+                    self._follow[ATTR_FOLLOWERS_COUNT] = None
 

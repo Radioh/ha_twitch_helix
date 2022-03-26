@@ -5,5 +5,5 @@
   "requirements": ["twitchAPI==2.5.1"],
   "codeowners": ["@Radioh"],
   "iot_class": "cloud_polling",
-  "version": "0.5.2"
+  "version": "0.5.3"
 }
