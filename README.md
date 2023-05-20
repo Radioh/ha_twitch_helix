@@ -5,12 +5,10 @@
 
 ## Intro
 
-Custom Component to integrate with Twitch helix api
-
-It looks like the original Twitch sensor integration uses the Twitch V5 API which is deprecated.
-New Twitch apps doesn't seem to work with this deprecated API.
+Custom Component to integrate with Twitch helix api.
 
 This component does mostly the same as the original integration found here (https://www.home-assistant.io/integrations/twitch/), but with some extra features and the underlying implementation is using the Twitch Helix API.
+The official Twitch integration was not maintained and started failing, when Twitch switched to the Helix API. However, the official is has since been updated and should now be working again.
 
 ## Prerequisites
 
