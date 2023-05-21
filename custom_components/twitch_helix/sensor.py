@@ -145,7 +145,7 @@ class TwitchSensor(SensorEntity):
             self._preview = broadcast_user.profile_image_url
             self._name = broadcast_user.display_name
         except:
-            _LOGGER.warning("Failed to retrieve broadcast user from Twitch API")
+            _LOGGER.warning("Failed to retrieve broadcast user from Twitch API: " + self._channel)
             return
 
         # Stream
