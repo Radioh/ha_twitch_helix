@@ -5,16 +5,12 @@
 
 ## Intro
 
-Custom Component to integrate with Twitch helix api
-
-It looks like the original Twitch sensor integration uses the Twitch V5 API which is deprecated.
-New Twitch apps doesn't seem to work with this deprecated API.
-
-This component does mostly the same as the original integration found here (https://www.home-assistant.io/integrations/twitch/), but with some extra features and the underlying implementation is using the Twitch Helix API.
+Custom Component to integrate with Twitch helix api.
 
 ## Prerequisites
 
 This component requires a Twitch developer app which can be setup here: https://dev.twitch.tv/console/apps
+Only APP authentication is required for the used API endpoints. Hence, you only need to provvide the client_id and client_secret from the app you create in the Twitch Console.
 
 ## Installation
 
@@ -48,14 +44,12 @@ sensor:
       - "AvoidingThePuddle"
     api_opt_outs:
       # - subscription_user
-      # - follow_user
-      # - follow_total
       # - stream
 ```
 
 `client_id`: client id acquired in Twitch developer app.\
 `client_secret`: client secret acquired in Twitch developer app.\
-`own_channel`: channel username of your twitch channel. Used to check if channels are followed and subscribed to.\
+`own_channel`: channel username of your twitch channel. Used to check if channels are subscribed to.\
 `thumbnail_dimensions`: optional parameter. Format is {width}x{height} for thumbnail_url dimensions. Default value is "{width}x{height}" where you need to replace values yourself in the url.\
 `entity_prefix`: optional parameter. Prefix to the entity id.\
 `channels`: list of channel usernames to create entities for.\
