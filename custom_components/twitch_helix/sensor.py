@@ -13,6 +13,7 @@ ATTR_GAME = "game"
 ATTR_TITLE = "title"
 ATTR_SUBSCRIPTION = "subscribed"
 ATTR_SUBSCRIPTION_GIFTED = "subscription_is_gifted"
+ATTR_SUBSCRIPTION_TIER = "subscription_tier"
 ATTR_VIEWS = "viewers"
 ATTR_THUMBNAIL = "thumbnail_url"
 ATTR_STARTED_AT = "started_at"
@@ -171,15 +172,17 @@ class TwitchSensor(SensorEntity):
         # Subscription
         if (OPT_OUT_SUBSCRIPTION_USER not in self._api_opt_outs):
             try:
-                subscription = await first(self._client.check_user_subscription(broadcaster_id=self._channel_id, user_id=self._user_id))
+                subscription = await self._client.check_user_subscription(broadcaster_id=self._channel_id, user_id=self._user_id)
                 
                 if subscription:
                     self._subscription = {
                         ATTR_SUBSCRIPTION: True,
-                        ATTR_SUBSCRIPTION_GIFTED: subscription.is_gift
+                        ATTR_SUBSCRIPTION_GIFTED: subscription.is_gift,
+                        ATTR_SUBSCRIPTION_TIER: subscription.tier
                     }
             except:
                 self._subscription = {
                     ATTR_SUBSCRIPTION: False, 
-                    ATTR_SUBSCRIPTION_GIFTED: False
+                    ATTR_SUBSCRIPTION_GIFTED: False,
+                    ATTR_SUBSCRIPTION_TIER: None
                 }
