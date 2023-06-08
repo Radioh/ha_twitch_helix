@@ -183,6 +183,5 @@ class TwitchSensor(SensorEntity):
             except:
                 self._subscription = {
                     ATTR_SUBSCRIPTION: False, 
-                    ATTR_SUBSCRIPTION_GIFTED: False,
-                    ATTR_SUBSCRIPTION_TIER: None
+                    ATTR_SUBSCRIPTION_GIFTED: False
                 }
