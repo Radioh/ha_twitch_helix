@@ -13,6 +13,7 @@ ATTR_GAME = "game"
 ATTR_TITLE = "title"
 ATTR_SUBSCRIPTION = "subscribed"
 ATTR_SUBSCRIPTION_GIFTED = "subscription_is_gifted"
+ATTR_SUBSCRIPTION_TIER = "subscription_tier"
 ATTR_VIEWS = "viewers"
 ATTR_THUMBNAIL = "thumbnail_url"
 ATTR_STARTED_AT = "started_at"
@@ -176,10 +177,12 @@ class TwitchSensor(SensorEntity):
                 if subscription:
                     self._subscription = {
                         ATTR_SUBSCRIPTION: True,
-                        ATTR_SUBSCRIPTION_GIFTED: subscription.data[0].is_gift
+                        ATTR_SUBSCRIPTION_GIFTED: subscription.is_gift,
+                        ATTR_SUBSCRIPTION_TIER: subscription.tier
                     }
             except:
                 self._subscription = {
                     ATTR_SUBSCRIPTION: False, 
-                    ATTR_SUBSCRIPTION_GIFTED: False
+                    ATTR_SUBSCRIPTION_GIFTED: False,
+                    ATTR_SUBSCRIPTION_TIER: None
                 }
